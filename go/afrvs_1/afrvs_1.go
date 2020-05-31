@@ -17,6 +17,11 @@ var (
 	k      int64   = n
 )
 
+func faultPolicy(lambda float64) float64 {
+	// return 1.0 / (float64(N-n) * lambda)
+	return distribution.Exponential(lambda)
+}
+
 func MTheor(t int64) float64 {
 	var res float64 = (float64(n) - float64(N-n)*lambda*float64(t))
 	if res < 0 {
@@ -28,19 +33,19 @@ func MTheor(t int64) float64 {
 func MPrac(dots [][]int64, t int64) float64 {
 	var (
 		res float64 = 0.0
-		n   int64   = t
+		_t  int64   = t
 		min int64   = 0
 		max int64   = 0
 	)
 	if len(dots) > 0 {
 		for i := range dots {
 			if i > 0 {
-				if (dots[i-1][0] < n) && (n <= dots[i][0]) {
+				if (dots[i-1][0] < _t) && (_t <= dots[i][0]) {
 					min = int64(i - 1)
 					max = int64(i)
 				}
 			} else {
-				if n < dots[i][0] {
+				if _t < dots[i][0] {
 					min = 0
 					max = 0
 				}
@@ -56,22 +61,24 @@ func MPrac(dots [][]int64, t int64) float64 {
 					}
 				} else {
 					if i > 0 {
-						res = res + float64((dots[i][1]+1)*(n-dots[i-1][0]))
+						res = res + float64((dots[i][1]+1)*(_t-dots[i-1][0]))
 					} else {
-						res = res + float64((dots[i][1]+1)*(n))
+						res = res + float64((dots[i][1]+1)*(_t))
 					}
 				}
 			}
 		} else {
-			res = res + float64((dots[0][1]+1)*(n))
+			res = res + float64((dots[0][1]+1)*(_t))
 		}
 		res = res / float64(t)
 	} else {
-		res = float64(n)
+		res = float64(_t)
 	}
+
 	if t == 0 {
 		res = float64(n)
 	}
+
 	return res
 }
 
@@ -85,7 +92,7 @@ func DTheor(t int64) float64 {
 
 func Run() {
 	var (
-		timeToFault   int64     = int64(distribution.Exponential(lambda))
+		timeToFault   int64     = int64(faultPolicy(lambda))
 		modelTime     int64     = 0
 		lastFaultTime int64     = 0
 		dots          [][]int64 = [][]int64{}
@@ -121,7 +128,7 @@ func Run() {
 	for (modelTime < TLimit && limit) || (k > 0 && !limit) {
 		if modelTime-lastFaultTime >= timeToFault && k > 0 {
 			lastFaultTime = modelTime
-			timeToFault = int64(distribution.Exponential(lambda))
+			timeToFault = int64(faultPolicy(lambda))
 			k--
 			fmt.Printf("%d\t%d\t%d\n", modelTime, k, timeToFault)
 			FP.WriteString(fmt.Sprintf("%d\t%d\n", modelTime, k))
