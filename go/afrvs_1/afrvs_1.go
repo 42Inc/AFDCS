@@ -28,15 +28,42 @@ func MTheor(t int64) float64 {
 func MPrac(dots [][]int64, t int64) float64 {
 	var (
 		res float64 = 0.0
-		i   int64   = 0
-		dot int64   = 0
+		n   int64   = t
+		min int64   = 0
+		max int64   = 0
 	)
 	if len(dots) > 0 {
-		for i = 0; i < t; i++ {
-			if dot < int64(len(dots)-1) && i >= dots[dot][0] {
-				dot++
+		for i := range dots {
+			if i > 0 {
+				if (dots[i-1][0] < n) && (n <= dots[i][0]) {
+					min = int64(i - 1)
+					max = int64(i)
+				}
+			} else {
+				if n < dots[i][0] {
+					min = 0
+					max = 0
+				}
 			}
-			res = res + float64(dots[dot][1]+1)
+		}
+		if min > 0 && max > 0 {
+			for i := 0; int64(i) < max; i++ {
+				if min > int64(i) {
+					if i > 0 {
+						res = res + float64((dots[i][1]+1)*(dots[i][0]-dots[i-1][0]))
+					} else {
+						res = res + float64((dots[i][1]+1)*(dots[i][0]))
+					}
+				} else {
+					if i > 0 {
+						res = res + float64((dots[i][1]+1)*(n-dots[i-1][0]))
+					} else {
+						res = res + float64((dots[i][1]+1)*(n))
+					}
+				}
+			}
+		} else {
+			res = res + float64((dots[0][1]+1)*(n))
 		}
 		res = res / float64(t)
 	} else {
