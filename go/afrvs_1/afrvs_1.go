@@ -3,21 +3,22 @@ package afrvs_1
 import (
 	"fmt"
 	"log"
+	"math"
 	"os"
 
 	"../distribution"
 )
 
 var (
-	lambda float64 = 1E-4
 	mu     float64 = 0
 	n      int64   = 20
 	N      int64   = 1E+3 + n
+	lambda float64 = 1E-4
 	k      int64   = n
 )
 
 func MTheor(t int64) float64 {
-	var res float64 = (float64(n) - float64((N-n))*lambda*float64(t))
+	var res float64 = (float64(n) - float64(N-n)*lambda*float64(t))
 	if res < 0 {
 		res = 0
 	}
@@ -27,17 +28,21 @@ func MTheor(t int64) float64 {
 func MPrac(dots [][]int64, t int64) float64 {
 	var (
 		res float64 = 0.0
-		i int64 = 0
-		dot int64 = 0
+		i   int64   = 0
+		dot int64   = 0
 	)
-	for i = 0; i < t; i++ {
-		if (i >= dots[dot][0]) {
-			dot++
+	if len(dots) > 0 {
+		for i = 0; i < t; i++ {
+			if dot < int64(len(dots)-1) && i >= dots[dot][0] {
+				dot++
+			}
+			res = res + float64(dots[dot][1]+1)
 		}
-		res = res + float64(dots[dot][1] + 1)
+		res = res / float64(t)
+	} else {
+		res = float64(n)
 	}
-	res = res / float64(t)
-	if (t == 0) {
+	if t == 0 {
 		res = float64(n)
 	}
 	return res
@@ -57,44 +62,46 @@ func Run() {
 		modelTime     int64     = 0
 		lastFaultTime int64     = 0
 		dots          [][]int64 = [][]int64{}
-		M             float64   = float64(k)
-		D             float64   = 0
 		i             int64     = 0
+		MTh           float64   = 0.0
+		DTh           float64   = 0.0
+		TLimit        int64     = 5000
+		limit         bool      = false
 	)
 
-	FP, err := os.OpenFile("afrvs_1_FP.dat", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
+	FP, err := os.OpenFile("data/afrvs_1_FP.dat",
+		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	MT, err := os.OpenFile("afrvs_1_MT.dat", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
+	MT, err := os.OpenFile("data/afrvs_1_MT.dat",
+		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	DT, err := os.OpenFile("afrvs_1_DT.dat", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
+	DT, err := os.OpenFile("data/afrvs_1_DT.dat",
+		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	MP, err := os.OpenFile("afrvs_1_MP.dat", os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666)
+	MP, err := os.OpenFile("data/afrvs_1_MP.dat",
+		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Time\tleft\tnFault\tM\tD\t\n")
-	for k > 0 {
-		if modelTime-lastFaultTime >= timeToFault {
+	fmt.Printf("Time\tleft\tnFault\n")
+	for (modelTime < TLimit && limit) || (k > 0 && !limit) {
+		if modelTime-lastFaultTime >= timeToFault && k > 0 {
 			lastFaultTime = modelTime
 			timeToFault = int64(distribution.Exponential(lambda))
 			k--
-			fmt.Printf("%d\t%d\t%d\t%f\t%f\t\n", modelTime, k, timeToFault, M, D)
+			fmt.Printf("%d\t%d\t%d\n", modelTime, k, timeToFault)
 			FP.WriteString(fmt.Sprintf("%d\t%d\n", modelTime, k))
 			dots = append(dots, []int64{modelTime, k})
 		}
-
 		modelTime++
+
 	}
 
 	for i := range dots {
@@ -102,11 +109,12 @@ func Run() {
 	}
 
 	for i = 0; i < modelTime; i++ {
-		MT.WriteString(fmt.Sprintf("%d\t%.6f\n", i, MTheor(i)))
+		MTh = MTheor(i)
+		DTh = DTheor(i)
+		MT.WriteString(fmt.Sprintf("%d\t%.6f\n", i, MTh))
 		MP.WriteString(fmt.Sprintf("%d\t%.6f\n", i, MPrac(dots, i)))
-		DT.WriteString(fmt.Sprintf("%d\t%.6f\n", i, DTheor(i)))
+		DT.WriteString(fmt.Sprintf("%d\t%.6f\t%.6f\n", i, MTh+math.Sqrt(DTh), MTh-math.Sqrt(DTh)))
 	}
-
 
 	FP.Close()
 	MT.Close()
