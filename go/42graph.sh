@@ -11,7 +11,7 @@ set key top left
 set grid
 set mytics
 set mxtics
-set format y "%.6f"
+set format y "%.0f"
 set xlabel "t" font "Arial, 16"
 set format x "%.0f"
 set ylabel "n" font "Arial, 16"
@@ -35,3 +35,19 @@ plot "data/afrvs_2_DT.dat" using 1:2 title "D Theory" with linespoints ls 3, \
      "data/afrvs_2_DP.dat" using 1:2 title "D Practic" with linespoints ls 4, \
      "data/afrvs_2_DP.dat" using 1:3 notitle with linespoints ls 4, \
      "data/afrvs_2_MP.dat" using 1:2 title "M Practic" with linespoints ls 2
+
+set output 'data/afrvs_3_M.png'
+plot "data/afrvs_3_DT.dat" using 1:2 title "D Theory" with linespoints ls 3, \
+     "data/afrvs_3_DT.dat" using 1:3 notitle with linespoints ls 3,\
+     "data/afrvs_3_MT.dat" using 1:2 title "M Theory" with linespoints ls 1, \
+     "data/afrvs_3_DP.dat" using 1:2 title "D Practic" with linespoints ls 4, \
+     "data/afrvs_3_DP.dat" using 1:3 notitle with linespoints ls 4, \
+     "data/afrvs_3_MP.dat" using 1:2 title "M Practic" with linespoints ls 2
+
+set output 'data/afrvs_4_M.png'
+plot "data/afrvs_4_DT.dat" using 1:2 title "D Theory" with linespoints ls 3, \
+     "data/afrvs_4_DT.dat" using 1:3 notitle with linespoints ls 3,\
+     "data/afrvs_4_MT.dat" using 1:2 title "M Theory" with linespoints ls 1, \
+     "data/afrvs_4_DP.dat" using 1:2 title "D Practic" with linespoints ls 4, \
+     "data/afrvs_4_DP.dat" using 1:3 notitle with linespoints ls 4, \
+     "data/afrvs_4_MP.dat" using 1:2 title "M Practic" with linespoints ls 2

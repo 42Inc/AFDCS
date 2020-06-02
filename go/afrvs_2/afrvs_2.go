@@ -18,7 +18,8 @@ var (
 	lambda      float64 = 0.0
 	k           []int64 = []int64{}
 	ModelsCount int64   = 1
-	TLimit      int64   = 500
+	TLimit      float64   = 500
+	TimeScale   float64 = 0.0
 )
 
 func initFlags() {
@@ -33,8 +34,10 @@ func initFlags() {
 		"Fault intense (lambda)")
 	flag.Int64Var(&ModelsCount, "c", 1,
 		"Models Count")
-	flag.Int64Var(&TLimit, "t", 500,
+	flag.Float64Var(&TLimit, "t", 500,
 		"Model time limit")
+		flag.Float64Var(&TimeScale, "s", 1,
+			"Time Scale")
 	flag.Parse()
 }
 
@@ -65,32 +68,34 @@ func factorial(n int64) int64 {
 	return factVal
 }
 
-func MTheor(t int64) float64 {
+func MTheor(t float64) float64 {
 	var (
-		i   int64   = 0
 		res float64 = 0.0
 	)
-	// res = (float64(n) - float64(N-n)*lambda*float64(t))
 
-	res = (r * mu / lambda) + (n-r*mu/lambda)*math.Pow(math.E, -float64(N-n)*lambda*float64(t))
+	res = (float64(n) * mu / lambda) +
+		(float64(N)-float64(n)*mu/lambda)*math.Pow(math.E, -lambda*t)
 	if res < 0 {
 		res = 0
 	}
 	return res
 }
 
-func DTheor(t int64, M float64) (float64, float64) {
+func DTheor(t float64, M float64) (float64, float64) {
 	var (
-		i    int64   = 0
 		D    float64 = 0.0
 		C    float64 = 0.0
 		Up   float64 = 0.0
 		Down float64 = 0.0
 	)
-	// D = (float64(N-n) * lambda * float64(t))
-	C = -(r*mu/lambda)*(2*n-(r*mu/lambda)+((r-1)/2)) - n + math.Pow(n, 2)
+	
+	C = -(float64(n)*mu/lambda)*(2*float64(N)-(float64(n)*mu/lambda)+
+		((float64(n)-1)/2)) - float64(N) + math.Pow(float64(N), 2)
 
-	D = C*math.Pow(math.E, -float64(N-n)*lambda*float64(t)) + (r*mu/lambda)*((r*mu/lambda)+2*(n-r*mu/lambda)*math.Pow(math.E, -float64(N-n)*lambda*float64(t))) + r*(r-1)*mu/2*lambda + M - math.Pow(M, 2)
+	D = C*math.Pow(math.E, -2*lambda*t) + (float64(n)*mu/lambda)*
+		((float64(n)*mu/lambda)+2*(float64(N)-float64(n)*mu/lambda)*
+			math.Pow(math.E, -lambda*t)) + float64(n)*(float64(n)-1)*
+		mu/2*lambda + M - math.Pow(M, 2)
 
 	if D < 0 {
 		D = 0
@@ -149,7 +154,7 @@ func MPrac(machines []int64) float64 {
 
 func Run() {
 	var (
-		modelTime int64   = 0
+		modelTime float64   = 0.0
 		i         int64   = 0
 		MTh       float64 = 0.0
 		DThUp     float64 = 0.0
@@ -197,12 +202,12 @@ func Run() {
 		k = append(k, N)
 	}
 
-	for modelTime = 0; modelTime < TLimit; modelTime++ {
-		FileFP.WriteString(fmt.Sprintf("%d\t", modelTime))
+	for modelTime = 0; modelTime < TLimit; modelTime=modelTime+TimeScale {
+		FileFP.WriteString(fmt.Sprintf("%f\t", modelTime))
 		for i = 0; i < ModelsCount; i++ {
 			if modelTime > 0 {
-				FaultProb := distrPolicy(lambda*float64(k[i]), 1)
-				RestoreProb := distrPolicy(mu, 1)
+				FaultProb := distrPolicy(lambda*float64(k[i]), TimeScale)
+				RestoreProb := distrPolicy(mu, TimeScale)
 				Prob = rand.Float64()
 				//fmt.Printf("F[%d] %f < %f\n", modelTime, Prob, FaultProb)
 				if Prob < FaultProb {
@@ -223,17 +228,17 @@ func Run() {
 		}
 		FileFP.WriteString("\n")
 		MPr = MPrac(k)
-		FileMP.WriteString(fmt.Sprintf("%d\t%.6f\n", modelTime, MPr))
+		FileMP.WriteString(fmt.Sprintf("%f\t%.6f\n", modelTime, MPr))
 		DPrUp, DPrDown = DPrac(k, MPr)
-		FileDP.WriteString(fmt.Sprintf("%d\t%.6f\t%.6f\n", modelTime, DPrUp, DPrDown))
+		FileDP.WriteString(fmt.Sprintf("%f\t%.6f\t%.6f\n", modelTime, DPrUp, DPrDown))
 	}
 
-	for i = 0; i < modelTime; i++ {
+	for i := 0.0; i < modelTime; i=i+TimeScale {
 		MTh = MTheor(i)
 		DThUp, DThDown = DTheor(i, MTh)
-		FileMT.WriteString(fmt.Sprintf("%d\t%.6f\n", i, MTh))
+		FileMT.WriteString(fmt.Sprintf("%f\t%.6f\n", i, MTh))
 		// MP.WriteString(fmt.Sprintf("%d\t%.6f\n", i, MPrac(dots, i)))
-		FileDT.WriteString(fmt.Sprintf("%d\t%.6f\t%.6f\n", i, DThUp, DThDown))
+		FileDT.WriteString(fmt.Sprintf("%f\t%.6f\t%.6f\n", i, DThUp, DThDown))
 	}
 
 	FileFP.Close()
