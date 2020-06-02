@@ -18,7 +18,7 @@ var (
 	lambda      float64 = 0.0
 	k           []int64 = []int64{}
 	ModelsCount int64   = 1
-	TLimit      float64   = 500
+	TLimit      float64 = 500
 	TimeScale   float64 = 0.0
 )
 
@@ -80,7 +80,8 @@ func MTheor(t float64) float64 {
 			((math.Pow(lambda*t*float64(N-n), float64(n-i))) /
 				(float64(factorial(n - i)))))
 	}
-	res = res * math.Pow(math.E, -float64(N-n)*lambda*t)
+	res = (float64(N)*lambda/mu + lambda) + ((mu*float64(i)-lambda*(float64(N)-float64(i)))/(mu+lambda))*math.Pow(math.E, -float64((mu+lambda)*t))
+
 	if res < 0 {
 		res = 0
 	}
@@ -91,17 +92,14 @@ func DTheor(t float64, M float64) (float64, float64) {
 	var (
 		i    int64   = 0
 		D    float64 = 0.0
+		C    float64 = 0.0
 		Up   float64 = 0.0
 		Down float64 = 0.0
 	)
 	// D = (float64(N-n) * lambda * t)
+	C = math.Pow(float64(i), 2) - float64(i) - 2*float64(N)*(float64(N)-1)*math.Pow(lambda, 2)/((mu+lambda)*(mu+2*lambda)) - 2*(float64(N)-1)*((mu*float64(i)-lambda*(float64(N)-float64(i)))/(mu+lambda))
 
-	for i = 1; i <= n; i++ {
-		D = D + (math.Pow(float64(i), 2) *
-			((math.Pow(lambda*t*float64(N-n), float64(n-i))) /
-				(float64(factorial(n - i)))))
-	}
-	D = D*math.Pow(math.E, -float64(N-n)*lambda*t) - math.Pow(M, 2)
+	D = 2*float64(N)*(float64(N)-1)*math.Pow(lambda, 2)/((mu+lambda)*(mu+2*lambda)) + C*math.Pow(math.E, -float64((mu+lambda)*t)) + 2*(float64(N)-float64(i))*((mu*float64(i)-lambda*(float64(N)-float64(i)))/(mu+lambda))*math.Pow(math.E, -float64((mu+lambda)*t)) + M - math.Pow(M, 2)
 
 	if D < 0 {
 		D = 0
@@ -253,7 +251,7 @@ func Run() {
 		FileDP.WriteString(fmt.Sprintf("%f\t%.6f\t%.6f\n", modelTime, DPrUp, DPrDown))
 	}
 
-	for i := 0.0; i < modelTime; i=i + TimeScale {
+	for i := 0.0; i < modelTime; i = i + TimeScale {
 		MTh = MTheor(i)
 		DThUp, DThDown = DTheor(i, MTh)
 		FileMT.WriteString(fmt.Sprintf("%f\t%.6f\n", i, MTh))

@@ -18,7 +18,7 @@ var (
 	lambda      float64 = 0.0
 	k           []int64 = []int64{}
 	ModelsCount int64   = 1
-	TLimit      float64   = 500
+	TLimit      float64 = 500
 	TimeScale   float64 = 0.0
 )
 
@@ -75,12 +75,7 @@ func MTheor(t float64) float64 {
 	)
 	// res = (float64(n) - float64(N-n)*lambda*t)
 
-	for i = 1; i <= n; i++ {
-		res = res + (float64(i) *
-			((math.Pow(lambda*t*float64(N-n), float64(n-i))) /
-				(float64(factorial(n - i)))))
-	}
-	res = res * math.Pow(math.E, -float64(N-n)*lambda*t)
+	res = alf * (float64(n) + 1) / (2 * (bet - alf))
 	if res < 0 {
 		res = 0
 	}
@@ -96,12 +91,7 @@ func DTheor(t float64, M float64) (float64, float64) {
 	)
 	// D = (float64(N-n) * lambda * t)
 
-	for i = 1; i <= n; i++ {
-		D = D + (math.Pow(float64(i), 2) *
-			((math.Pow(lambda*t*float64(N-n), float64(n-i))) /
-				(float64(factorial(n - i)))))
-	}
-	D = D*math.Pow(math.E, -float64(N-n)*lambda*t) - math.Pow(M, 2)
+	D = alf*(float64(n)*bet-alf*float64(n))*((((n*bet-alf*float64(n))*float64(n)*(math.Pow(float64(n), 2)-1)/3)+2*alf*math.Pow(float64(n)*(float64(n)+1)/2, 2))/math.Pow(float64(n)*bet-alf*n, 3)) + M - math.Pow(M, 2)
 
 	if D < 0 {
 		D = 0
@@ -253,7 +243,7 @@ func Run() {
 		FileDP.WriteString(fmt.Sprintf("%f\t%.6f\t%.6f\n", modelTime, DPrUp, DPrDown))
 	}
 
-	for i := 0.0; i < modelTime; i=i + TimeScale {
+	for i := 0.0; i < modelTime; i = i + TimeScale {
 		MTh = MTheor(i)
 		DThUp, DThDown = DTheor(i, MTh)
 		FileMT.WriteString(fmt.Sprintf("%f\t%.6f\n", i, MTh))
