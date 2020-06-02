@@ -4,6 +4,7 @@ set terminal png size 1920,1080 enhanced font 'Arial, 16'
 set style line 1 linecolor rgb 'red' linetype 1 linewidth 2
 set style line 2 linecolor rgb 'blue' linetype 1 linewidth 2
 set style line 3 linecolor rgb 'green' linetype 1 linewidth 2
+set style line 4 linecolor rgb 'cyan' linetype 1 linewidth 2
 
 set border linewidth 1
 set key top left
@@ -20,7 +21,10 @@ set rmargin 4
 set tmargin 2
 
 set output 'data/afrvs_1_M.png'
-plot "data/afrvs_1_MT.dat" using 1:2 title "M Theory" with linespoints ls 1, \
-     "data/afrvs_1_MP.dat" using 1:2 title "M P" with linespoints ls 2, \
-     "data/afrvs_1_DT.dat" using 1:2 title "D Theory" with linespoints ls 3, \
-     "data/afrvs_1_DT.dat" using 1:3 notitle with linespoints ls 3
+plot "data/afrvs_1_DT.dat" using 1:2 title "D Theory" with linespoints ls 3, \
+     "data/afrvs_1_DT.dat" using 1:3 notitle with linespoints ls 3,\
+     "data/afrvs_1_MT.dat" using 1:2 title "M Theory" with linespoints ls 1, \
+     "data/afrvs_1_MP.dat" using 1:2 title "M Practic" with linespoints ls 2, \
+     "data/afrvs_1_DP.dat" using 1:2 title "D Practic" with linespoints ls 4, \
+     "data/afrvs_1_DP.dat" using 1:3 notitle with linespoints ls 4
+     
