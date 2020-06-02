@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./afrvs_1"
+	model "./afrvs_2"
 )
 
 func main() {
-  afrvs_1.Run()
+  model.Run()
 }

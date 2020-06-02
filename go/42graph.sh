@@ -24,7 +24,14 @@ set output 'data/afrvs_1_M.png'
 plot "data/afrvs_1_DT.dat" using 1:2 title "D Theory" with linespoints ls 3, \
      "data/afrvs_1_DT.dat" using 1:3 notitle with linespoints ls 3,\
      "data/afrvs_1_MT.dat" using 1:2 title "M Theory" with linespoints ls 1, \
-     "data/afrvs_1_MP.dat" using 1:2 title "M Practic" with linespoints ls 2, \
      "data/afrvs_1_DP.dat" using 1:2 title "D Practic" with linespoints ls 4, \
-     "data/afrvs_1_DP.dat" using 1:3 notitle with linespoints ls 4
-     
+     "data/afrvs_1_DP.dat" using 1:3 notitle with linespoints ls 4, \
+     "data/afrvs_1_MP.dat" using 1:2 title "M Practic" with linespoints ls 2
+
+set output 'data/afrvs_2_M.png'
+plot "data/afrvs_2_DT.dat" using 1:2 title "D Theory" with linespoints ls 3, \
+     "data/afrvs_2_DT.dat" using 1:3 notitle with linespoints ls 3,\
+     "data/afrvs_2_MT.dat" using 1:2 title "M Theory" with linespoints ls 1, \
+     "data/afrvs_2_DP.dat" using 1:2 title "D Practic" with linespoints ls 4, \
+     "data/afrvs_2_DP.dat" using 1:3 notitle with linespoints ls 4, \
+     "data/afrvs_2_MP.dat" using 1:2 title "M Practic" with linespoints ls 2

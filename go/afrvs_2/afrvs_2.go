@@ -26,9 +26,9 @@ func initFlags() {
 	flag.Float64Var(&mu, "m", 0.1,
 		"Restore intense (mu)")
 	flag.Int64Var(&n, "n", 20,
-		"Reserve size (n)")
-	flag.Int64Var(&N, "N", 1E+3,
-		"Machines count (N. to N will be added n)")
+		"group size (n)")
+	flag.Int64Var(&N, "N", 1E+4,
+		"Machines count (N)")
 	flag.Float64Var(&lambda, "l", 1E-4,
 		"Fault intense (lambda)")
 	flag.Int64Var(&ModelsCount, "c", 1,
@@ -124,11 +124,6 @@ func DPrac(machines []int64, M float64) (float64, float64) {
 	)
 	for i = 0; i < ModelsCount; i++ {
 		cnt = machines[i]
-		if cnt > n {
-			cnt = 0
-		} else {
-			cnt = n - cnt
-		}
 		cnt = int64(math.Pow(float64(cnt), 2))
 		D = D + float64(cnt)
 	}
@@ -154,11 +149,6 @@ func MPrac(machines []int64) float64 {
 	)
 	for i = 0; i < ModelsCount; i++ {
 		cnt = machines[i]
-		if cnt > n {
-			cnt = 0
-		} else {
-			cnt = n - cnt
-		}
 		res = res + float64(cnt)
 	}
 	res = res / float64(ModelsCount)
@@ -180,65 +170,61 @@ func Run() {
 
 	initFlags()
 
-	N = N + n
 	if ModelsCount < 1 {
 		ModelsCount = 1
 	}
 
 	log.Printf("Models count: %d\n", ModelsCount)
-	FileFP, err := os.OpenFile("data/afrvs_1_FP.dat",
+	FileFP, err := os.OpenFile("data/afrvs_2_FP.dat",
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	FileMT, err := os.OpenFile("data/afrvs_1_MT.dat",
+	FileMT, err := os.OpenFile("data/afrvs_2_MT.dat",
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	FileDT, err := os.OpenFile("data/afrvs_1_DT.dat",
+	FileDT, err := os.OpenFile("data/afrvs_2_DT.dat",
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	FileMP, err := os.OpenFile("data/afrvs_1_MP.dat",
+	FileMP, err := os.OpenFile("data/afrvs_2_MP.dat",
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	FileDP, err := os.OpenFile("data/afrvs_1_DP.dat",
+	FileDP, err := os.OpenFile("data/afrvs_2_DP.dat",
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	for i = 0; i < ModelsCount; i++ {
-		k = append(k, 0)
+		k = append(k, N)
 	}
 
 	for modelTime = 0; modelTime < TLimit; modelTime++ {
 		FileFP.WriteString(fmt.Sprintf("%d\t", modelTime))
 		for i = 0; i < ModelsCount; i++ {
 			if modelTime > 0 {
-				FaultProb := distrPolicy(lambda*float64(N-n), 1)
+				FaultProb := distrPolicy(lambda*float64(k[i]), 1)
 				RestoreProb := distrPolicy(mu, 1)
 				Prob = rand.Float64()
-				// fmt.Printf("F[%d] %f < %f\n", modelTime, Prob, FaultProb)
+				fmt.Printf("F[%d] %f < %f\n", modelTime, Prob, FaultProb)
 				if Prob < FaultProb {
 					//Fault
-					k[i]++
-					if k[i] > N {
-						k[i] = N
-					}
-				}
-				Prob = rand.Float64()
-				// fmt.Printf("R[%d] %f < %f\n", modelTime, Prob, RestoreProb)
-				if Prob < RestoreProb {
-					//Restore
 					k[i]--
 					if k[i] < 0 {
 						k[i] = 0
 					}
+				}
+				Prob = rand.Float64()
+				fmt.Printf("R[%d] %f < %f\n", modelTime, Prob, RestoreProb)
+				if Prob < RestoreProb {
+					//Restore
+					k[i] = k[i] + n
 				}
 			}
 			FileFP.WriteString(fmt.Sprintf("%d\t", k[i]))
