@@ -18,7 +18,7 @@ var (
 	lambda      float64 = 0.0
 	k           []int64 = []int64{}
 	ModelsCount int64   = 1
-	TLimit      float64   = 500
+	TLimit      float64 = 500
 	TimeScale   float64 = 0.0
 )
 
@@ -253,7 +253,7 @@ func Run() {
 		FileDP.WriteString(fmt.Sprintf("%f\t%.6f\t%.6f\n", modelTime, DPrUp, DPrDown))
 	}
 
-	for i := 0.0; i < modelTime; i=i + TimeScale {
+	for i := 0.0; i < modelTime; i = i + TimeScale {
 		MTh = MTheor(i)
 		DThUp, DThDown = DTheor(i, MTh)
 		FileMT.WriteString(fmt.Sprintf("%f\t%.6f\n", i, MTh))

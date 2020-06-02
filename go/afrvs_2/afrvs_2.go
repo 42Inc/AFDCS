@@ -18,7 +18,7 @@ var (
 	lambda      float64 = 0.0
 	k           []int64 = []int64{}
 	ModelsCount int64   = 1
-	TLimit      float64   = 500
+	TLimit      float64 = 500
 	TimeScale   float64 = 0.0
 )
 
@@ -36,8 +36,8 @@ func initFlags() {
 		"Models Count")
 	flag.Float64Var(&TLimit, "t", 500,
 		"Model time limit")
-		flag.Float64Var(&TimeScale, "s", 1,
-			"Time Scale")
+	flag.Float64Var(&TimeScale, "s", 1,
+		"Time Scale")
 	flag.Parse()
 }
 
@@ -88,7 +88,7 @@ func DTheor(t float64, M float64) (float64, float64) {
 		Up   float64 = 0.0
 		Down float64 = 0.0
 	)
-	
+
 	C = -(float64(n)*mu/lambda)*(2*float64(N)-(float64(n)*mu/lambda)+
 		((float64(n)-1)/2)) - float64(N) + math.Pow(float64(N), 2)
 
@@ -154,7 +154,7 @@ func MPrac(machines []int64) float64 {
 
 func Run() {
 	var (
-		modelTime float64   = 0.0
+		modelTime float64 = 0.0
 		i         int64   = 0
 		MTh       float64 = 0.0
 		DThUp     float64 = 0.0
@@ -202,7 +202,7 @@ func Run() {
 		k = append(k, N)
 	}
 
-	for modelTime = 0; modelTime < TLimit; modelTime=modelTime+TimeScale {
+	for modelTime = 0; modelTime < TLimit; modelTime = modelTime + TimeScale {
 		FileFP.WriteString(fmt.Sprintf("%f\t", modelTime))
 		for i = 0; i < ModelsCount; i++ {
 			if modelTime > 0 {
@@ -233,7 +233,7 @@ func Run() {
 		FileDP.WriteString(fmt.Sprintf("%f\t%.6f\t%.6f\n", modelTime, DPrUp, DPrDown))
 	}
 
-	for i := 0.0; i < modelTime; i=i+TimeScale {
+	for i := 0.0; i < modelTime; i = i + TimeScale {
 		MTh = MTheor(i)
 		DThUp, DThDown = DTheor(i, MTh)
 		FileMT.WriteString(fmt.Sprintf("%f\t%.6f\n", i, MTh))
