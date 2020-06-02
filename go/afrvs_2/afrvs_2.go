@@ -72,12 +72,7 @@ func MTheor(t int64) float64 {
 	)
 	// res = (float64(n) - float64(N-n)*lambda*float64(t))
 
-	for i = 1; i <= n; i++ {
-		res = res + (float64(i) *
-			((math.Pow(lambda*float64(t)*float64(N-n), float64(n-i))) /
-				(float64(factorial(n - i)))))
-	}
-	res = res * math.Pow(math.E, -float64(N-n)*lambda*float64(t))
+	res = (r * mu / lambda) + (n-r*mu/lambda)*math.Pow(math.E, -float64(N-n)*lambda*float64(t))
 	if res < 0 {
 		res = 0
 	}
@@ -88,17 +83,14 @@ func DTheor(t int64, M float64) (float64, float64) {
 	var (
 		i    int64   = 0
 		D    float64 = 0.0
+		C    float64 = 0.0
 		Up   float64 = 0.0
 		Down float64 = 0.0
 	)
 	// D = (float64(N-n) * lambda * float64(t))
+	C = -(r*mu/lambda)*(2*n-(r*mu/lambda)+((r-1)/2)) - n + math.Pow(n, 2)
 
-	for i = 1; i <= n; i++ {
-		D = D + (math.Pow(float64(i), 2) *
-			((math.Pow(lambda*float64(t)*float64(N-n), float64(n-i))) /
-				(float64(factorial(n - i)))))
-	}
-	D = D*math.Pow(math.E, -float64(N-n)*lambda*float64(t)) - math.Pow(M, 2)
+	D = C*math.Pow(math.E, -float64(N-n)*lambda*float64(t)) + (r*mu/lambda)*((r*mu/lambda)+2*(n-r*mu/lambda)*math.Pow(math.E, -float64(N-n)*lambda*float64(t))) + r*(r-1)*mu/2*lambda + M - math.Pow(M, 2)
 
 	if D < 0 {
 		D = 0
@@ -212,7 +204,7 @@ func Run() {
 				FaultProb := distrPolicy(lambda*float64(k[i]), 1)
 				RestoreProb := distrPolicy(mu, 1)
 				Prob = rand.Float64()
-				fmt.Printf("F[%d] %f < %f\n", modelTime, Prob, FaultProb)
+				//fmt.Printf("F[%d] %f < %f\n", modelTime, Prob, FaultProb)
 				if Prob < FaultProb {
 					//Fault
 					k[i]--
@@ -221,7 +213,7 @@ func Run() {
 					}
 				}
 				Prob = rand.Float64()
-				fmt.Printf("R[%d] %f < %f\n", modelTime, Prob, RestoreProb)
+				//fmt.Printf("R[%d] %f < %f\n", modelTime, Prob, RestoreProb)
 				if Prob < RestoreProb {
 					//Restore
 					k[i] = k[i] + n
