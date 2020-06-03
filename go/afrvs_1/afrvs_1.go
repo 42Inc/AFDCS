@@ -52,16 +52,16 @@ func distrPolicy(param float64, delta float64) float64 {
 	return distribution.Exponential(param, delta)
 }
 
-func factorial(n int64) int64 {
+func factorial(n int64) uint64 {
 	var (
-		factVal int64 = 1
-		i       int64 = 0
+		factVal uint64 = 1
+		i       int64  = 0
 	)
 	if n < 0 {
 		return 0
 	} else {
 		for i = 1; i <= n; i++ {
-			factVal *= int64(i)
+			factVal *= uint64(i)
 		}
 
 	}
