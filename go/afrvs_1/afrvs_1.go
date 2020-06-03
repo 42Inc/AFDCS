@@ -1,5 +1,7 @@
 package afrvs_1
 
+// Lecture 6
+
 import (
 	"flag"
 	"fmt"

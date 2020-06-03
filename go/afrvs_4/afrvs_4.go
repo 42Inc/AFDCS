@@ -1,4 +1,6 @@
-package afrvs_1
+package afrvs_4
+
+// Lecture 8
 
 import (
 	"flag"
