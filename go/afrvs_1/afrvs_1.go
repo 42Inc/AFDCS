@@ -54,22 +54,6 @@ func distrPolicy(param float64, delta float64) float64 {
 	return distribution.Exponential(param, delta)
 }
 
-func factorial(n int64) uint64 {
-	var (
-		factVal uint64 = 1
-		i       int64  = 0
-	)
-	if n < 0 {
-		return 0
-	} else {
-		for i = 1; i <= n; i++ {
-			factVal *= uint64(i)
-		}
-
-	}
-	return factVal
-}
-
 func MTheor(t float64) float64 {
 	var (
 		i   int64   = 0
@@ -80,7 +64,7 @@ func MTheor(t float64) float64 {
 	for i = 1; i <= n; i++ {
 		res = res + (float64(i) *
 			((math.Pow(lambda*t*float64(N-n), float64(n-i))) /
-				(float64(factorial(n - i)))))
+				(float64(distribution.Factorial(n - i)))))
 	}
 	res = res * math.Pow(math.E, -float64(N-n)*lambda*t)
 	if res < 0 {
@@ -101,7 +85,7 @@ func DTheor(t float64, M float64) (float64, float64) {
 	for i = 1; i <= n; i++ {
 		D = D + (math.Pow(float64(i), 2) *
 			((math.Pow(lambda*t*float64(N-n), float64(n-i))) /
-				(float64(factorial(n - i)))))
+				(float64(distribution.Factorial(n - i)))))
 	}
 	D = D*math.Pow(math.E, -float64(N-n)*lambda*t) - math.Pow(M, 2)
 
