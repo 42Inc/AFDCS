@@ -14,10 +14,9 @@ import (
 )
 
 var (
-	mu          float64 = 0.0
+	alpha				int64		= 0
+	beta				int64		= 0
 	n           int64   = 0
-	N           int64   = 0
-	lambda      float64 = 0.0
 	k           []int64 = []int64{}
 	ModelsCount int64   = 1
 	TLimit      float64 = 500
@@ -26,14 +25,8 @@ var (
 
 func initFlags() {
 	flag.Usage = usage
-	flag.Float64Var(&mu, "m", 0.1,
-		"Restore intense (mu)")
 	flag.Int64Var(&n, "n", 20,
 		"Reserve size (n)")
-	flag.Int64Var(&N, "N", 1E+3,
-		"Machines count (N. to N will be added n)")
-	flag.Float64Var(&lambda, "l", 1E-4,
-		"Fault intense (lambda)")
 	flag.Int64Var(&ModelsCount, "c", 1,
 		"Models Count")
 	flag.Float64Var(&TLimit, "t", 500,
@@ -50,7 +43,6 @@ func usage() {
 }
 
 func distrPolicy(param float64, delta float64) float64 {
-	// return 1.0 / (float64(N-n) * lambda)
 	return distribution.Exponential(param, delta)
 }
 
@@ -75,15 +67,8 @@ func MTheor(t float64) float64 {
 		i   int64   = 0
 		res float64 = 0.0
 	)
-	// res = (float64(n) - float64(N-n)*lambda*t)
 
-	for i = 1; i <= n; i++ {
-		res = res + (float64(i) *
-			((math.Pow(lambda*t*float64(N-n), float64(n-i))) /
-				(float64(factorial(n - i)))))
-	}
-	res = (float64(N)*lambda/mu + lambda) + ((mu*float64(i)-lambda*(float64(N)-float64(i)))/(mu+lambda))*math.Pow(math.E, -float64((mu+lambda)*t))
-
+	res = alf * (float64(n) + 1) / (2 * (bet - alf))
 	if res < 0 {
 		res = 0
 	}
@@ -252,14 +237,14 @@ func Run() {
 		DPrUp, DPrDown = DPrac(k, MPr)
 		FileDP.WriteString(fmt.Sprintf("%f\t%.6f\t%.6f\n", modelTime, DPrUp, DPrDown))
 	}
-
-	for i := 0.0; i < modelTime; i = i + TimeScale {
-		MTh = MTheor(i)
-		DThUp, DThDown = DTheor(i, MTh)
-		FileMT.WriteString(fmt.Sprintf("%f\t%.6f\n", i, MTh))
-		// MP.WriteString(fmt.Sprintf("%d\t%.6f\n", i, MPrac(dots, i)))
-		FileDT.WriteString(fmt.Sprintf("%f\t%.6f\t%.6f\n", i, DThUp, DThDown))
-	}
+	//
+	// for i := 0.0; i < modelTime; i = i + TimeScale {
+	// 	MTh = MTheor(i)
+	// 	DThUp, DThDown = DTheor(i, MTh)
+	// 	FileMT.WriteString(fmt.Sprintf("%f\t%.6f\n", i, MTh))
+	// 	// MP.WriteString(fmt.Sprintf("%d\t%.6f\n", i, MPrac(dots, i)))
+	// 	FileDT.WriteString(fmt.Sprintf("%f\t%.6f\t%.6f\n", i, DThUp, DThDown))
+	// }
 
 	FileFP.Close()
 	FileMT.Close()

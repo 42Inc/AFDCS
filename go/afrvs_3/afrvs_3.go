@@ -14,24 +14,21 @@ import (
 )
 
 var (
-	mu          float64 = 0.0
-	n           int64   = 0
+	mu          float64  = 0.0
 	N           int64   = 0
-	lambda      float64 = 0.0
+	lambda      float64  = 0.0
 	k           []int64 = []int64{}
 	ModelsCount int64   = 1
-	TLimit      float64 = 500
-	TimeScale   float64 = 0.0
+	TLimit      float64  = 500
+	TimeScale   float64  = 0.0
 )
 
 func initFlags() {
 	flag.Usage = usage
 	flag.Float64Var(&mu, "m", 0.1,
 		"Restore intense (mu)")
-	flag.Int64Var(&n, "n", 20,
-		"Reserve size (n)")
-	flag.Int64Var(&N, "N", 1E+3,
-		"Machines count (N. to N will be added n)")
+	flag.Int64Var(&N, "N", 2E+4,
+		"Machines count (N)")
 	flag.Float64Var(&lambda, "l", 1E-4,
 		"Fault intense (lambda)")
 	flag.Int64Var(&ModelsCount, "c", 1,
@@ -50,50 +47,38 @@ func usage() {
 }
 
 func distrPolicy(param float64, delta float64) float64 {
-	// return 1.0 / (float64(N-n) * lambda)
 	return distribution.Exponential(param, delta)
 }
 
-func factorial(n int64) int64 {
+func MTheor(t float64, i float64) float64 {
 	var (
-		factVal int64 = 1
-		i       int64 = 0
-	)
-	if n < 0 {
-		return 0
-	} else {
-		for i = 1; i <= n; i++ {
-			factVal *= int64(i)
-		}
-
-	}
-	return factVal
-}
-
-func MTheor(t float64) float64 {
-	var (
-		i   int64   = 0
 		res float64 = 0.0
 	)
-	// res = (float64(n) - float64(N-n)*lambda*t)
 
-	res = alf * (float64(n) + 1) / (2 * (bet - alf))
+	res = ((float64(N) * lambda) / mu) +
+				((mu * i - lambda * float64(N)) / mu) *
+				math.Pow(math.E, -mu * t)
+
 	if res < 0 {
 		res = 0
 	}
 	return res
 }
 
-func DTheor(t float64, M float64) (float64, float64) {
+func DTheor(t float64, M float64, i float64) (float64, float64) {
 	var (
-		i    int64   = 0
 		D    float64 = 0.0
 		Up   float64 = 0.0
 		Down float64 = 0.0
 	)
-	// D = (float64(N-n) * lambda * t)
 
-	D = alf*(float64(n)*bet-alf*float64(n))*((((n*bet-alf*float64(n))*float64(n)*(math.Pow(float64(n), 2)-1)/3)+2*alf*math.Pow(float64(n)*(float64(n)+1)/2, 2))/math.Pow(float64(n)*bet-alf*n, 3)) + M - math.Pow(M, 2)
+	D = 2 * math.Pow((float64(N) * lambda / mu), 2) * (1 - math.Pow(math.E, -mu * t)) +
+			2 * float64(N) * lambda * (i - float64(N) * lambda / mu) * t * math.Pow(math.E, -mu * t) +
+			(math.Pow(i, 2) - i) * math.Pow(math.E, -mu * t) + M - math.Pow(M, 2)
+	// D = alf * (float64(n) * bet - alf * float64(n)) *
+	// 		((((n * bet - alf * float64(n)) * float64(n) * (math.Pow(float64(n), 2) - 1) / 3) +
+	// 		2 * alf * math.Pow(float64(n) * (float64(n) + 1) / 2, 2)) / math.Pow(float64(n) * bet - alf * n, 3)) +
+	// 		M - math.Pow(M, 2)
 
 	if D < 0 {
 		D = 0
@@ -111,19 +96,15 @@ func DTheor(t float64, M float64) (float64, float64) {
 
 func DPrac(machines []int64, M float64) (float64, float64) {
 	var (
-		i    int64   = 0
+		i    int64  = 0
+		cnt  int64  = 0
 		D    float64 = 0.0
-		cnt  int64   = 0
 		Up   float64 = 0.0
 		Down float64 = 0.0
 	)
 	for i = 0; i < ModelsCount; i++ {
 		cnt = machines[i]
-		if cnt > n {
-			cnt = 0
-		} else {
-			cnt = n - cnt
-		}
+
 		cnt = int64(math.Pow(float64(cnt), 2))
 		D = D + float64(cnt)
 	}
@@ -149,11 +130,7 @@ func MPrac(machines []int64) float64 {
 	)
 	for i = 0; i < ModelsCount; i++ {
 		cnt = machines[i]
-		if cnt > n {
-			cnt = 0
-		} else {
-			cnt = n - cnt
-		}
+
 		res = res + float64(cnt)
 	}
 	res = res / float64(ModelsCount)
@@ -163,7 +140,7 @@ func MPrac(machines []int64) float64 {
 func Run() {
 	var (
 		modelTime float64 = 0.0
-		i         int64   = 0
+		i         int64  = 0
 		MTh       float64 = 0.0
 		DThUp     float64 = 0.0
 		DThDown   float64 = 0.0
@@ -175,33 +152,33 @@ func Run() {
 
 	initFlags()
 
-	N = N + n
+	// N = N + n
 	if ModelsCount < 1 {
 		ModelsCount = 1
 	}
 
 	log.Printf("Models count: %d\n", ModelsCount)
-	FileFP, err := os.OpenFile("data/afrvs_1_FP.dat",
+	FileFP, err := os.OpenFile("data/afrvs_3_FP.dat",
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	FileMT, err := os.OpenFile("data/afrvs_1_MT.dat",
+	FileMT, err := os.OpenFile("data/afrvs_3_MT.dat",
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	FileDT, err := os.OpenFile("data/afrvs_1_DT.dat",
+	FileDT, err := os.OpenFile("data/afrvs_3_DT.dat",
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	FileMP, err := os.OpenFile("data/afrvs_1_MP.dat",
+	FileMP, err := os.OpenFile("data/afrvs_3_MP.dat",
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
-	FileDP, err := os.OpenFile("data/afrvs_1_DP.dat",
+	FileDP, err := os.OpenFile("data/afrvs_3_DP.dat",
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatal(err)
@@ -215,7 +192,7 @@ func Run() {
 		FileFP.WriteString(fmt.Sprintf("%f\t", modelTime))
 		for i = 0; i < ModelsCount; i++ {
 			if modelTime > 0 {
-				FaultProb := distrPolicy(lambda*float64(N-n), TimeScale)
+				FaultProb := distrPolicy(lambda*float64(N), TimeScale)
 				RestoreProb := distrPolicy(mu, TimeScale)
 				Prob = rand.Float64()
 				// fmt.Printf("F[%d] %f < %f\n", modelTime, Prob, FaultProb)
@@ -230,10 +207,7 @@ func Run() {
 				// fmt.Printf("R[%d] %f < %f\n", modelTime, Prob, RestoreProb)
 				if Prob < RestoreProb {
 					//Restore
-					k[i]--
-					if k[i] < 0 {
-						k[i] = 0
-					}
+					k[i] = 0
 				}
 			}
 			FileFP.WriteString(fmt.Sprintf("%d\t", k[i]))
@@ -246,8 +220,8 @@ func Run() {
 	}
 
 	for i := 0.0; i < modelTime; i = i + TimeScale {
-		MTh = MTheor(i)
-		DThUp, DThDown = DTheor(i, MTh)
+		MTh = MTheor(i, float64(0))
+		DThUp, DThDown = DTheor(i, MTh, float64(0))
 		FileMT.WriteString(fmt.Sprintf("%f\t%.6f\n", i, MTh))
 		// MP.WriteString(fmt.Sprintf("%d\t%.6f\n", i, MPrac(dots, i)))
 		FileDT.WriteString(fmt.Sprintf("%f\t%.6f\t%.6f\n", i, DThUp, DThDown))

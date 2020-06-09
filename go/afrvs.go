@@ -1,7 +1,7 @@
 package main
 
 import (
-	model "./afrvs_1"
+	model "./afrvs_3"
 )
 
 func main() {
