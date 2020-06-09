@@ -25,11 +25,11 @@ var (
 
 func initFlags() {
 	flag.Usage = usage
-	flag.Float64Var(&alpha, "alpha", 0.1,
+	flag.Float64Var(&alpha, "alpha", 0.3,
 		"ne ebu (alpha)")
-	flag.Float64Var(&beta, "beta", 0.5,
+	flag.Float64Var(&beta, "beta", 3.0,
 		"ne ebu (beta)")
-	flag.Int64Var(&n, "n", 5,
+	flag.Int64Var(&n, "n", 7,
 		"Reserve size (n)")
 	flag.Int64Var(&ModelsCount, "c", 1,
 		"Models Count")
